@@ -1,0 +1,854 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      Sorteo de Casos: Desarrollo de Software para Negocios Locales — TGS
+    </title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Montserrat -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Font Awesome Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Montserrat", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        font-family: "Montserrat", sans-serif;
+        background-color: #f8fafc;
+        color: #1e293b;
+      }
+      .card-clean {
+        background-color: #ffffff;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+        transition: all 0.2s ease;
+      }
+      .card-clean:hover {
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.08);
+        border-color: #cbd5e1;
+      }
+      .shuffling {
+        animation: pulseFast 0.35s infinite alternate;
+      }
+      @keyframes pulseFast {
+        from {
+          transform: translateY(0px);
+          opacity: 0.75;
+        }
+        to {
+          transform: translateY(-3px);
+          opacity: 1;
+        }
+      }
+      @media print {
+        .no-print {
+          display: none !important;
+        }
+        body {
+          background-color: #ffffff !important;
+        }
+        .card-clean {
+          box-shadow: none !important;
+          border: 1px solid #94a3b8 !important;
+        }
+      }
+    </style>
+  </head>
+  <body class="min-h-screen pb-16 selection:bg-blue-600 selection:text-white">
+    <!-- ENCABEZADO SIMPLE Y CLARO -->
+    <header
+      class="bg-white border-b border-slate-200 sticky top-0 z-30 no-print"
+    >
+      <div
+        class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4"
+      >
+        <div class="flex items-center gap-3">
+          <div
+            class="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xl shadow-sm"
+          >
+            <i class="fa-solid fa-laptop-code"></i>
+          </div>
+          <div>
+            <span
+              class="text-xs font-bold uppercase tracking-wider text-blue-600"
+              >Teoría General de Sistemas (TGS)</span
+            >
+            <h1 class="text-lg sm:text-xl font-extrabold text-slate-900">
+              Casos de Desarrollo de Software para Locales
+            </h1>
+          </div>
+        </div>
+
+        <!-- Pestañas de Navegación -->
+        <div
+          class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200"
+        >
+          <button
+            id="tabBtnDraw"
+            onclick="switchTab('DRAW')"
+            class="px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition bg-white text-blue-600 shadow-sm"
+          >
+            <i class="fa-solid fa-dice mr-1.5"></i> Sorteo (5 Grupos)
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 pt-8">
+      <!-- ========================================================= -->
+      <!-- VISTA 1: SORTEO DE CASOS PARA LOS 5 GRUPOS                -->
+      <!-- ========================================================= -->
+      <section id="viewDraw" class="space-y-8">
+        <div class="card-clean rounded-2xl p-6 sm:p-8 text-center">
+          <span
+            class="inline-block px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wide mb-2 border border-blue-200"
+          >
+            25 Aprendices · 5 Equipos de Desarrollo
+          </span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900">
+            Sorteo de Proyectos para Negocios Locales
+          </h2>
+          <p class="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto mt-2">
+            Presiona el botón para asignar al azar un comercio local distinto a
+            cada uno de los <strong>5 grupos</strong>. Luego haz clic en
+            cualquier grupo para proyectar las
+            <strong>5 peticiones ambiguas</strong> de su cliente.
+          </p>
+
+          <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <button
+              id="btnRunRaffle"
+              onclick="runGroupRaffle()"
+              class="px-7 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-sm sm:text-base shadow-md shadow-blue-600/20 flex items-center gap-2.5 transition cursor-pointer"
+            >
+              <i class="fa-solid fa-shuffle"></i>
+              Sortear Casos para los 5 Grupos
+            </button>
+            <button
+              onclick="resetRaffle()"
+              class="px-4 py-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm transition cursor-pointer"
+            >
+              <i class="fa-solid fa-rotate-left mr-1"></i> Reiniciar
+            </button>
+          </div>
+        </div>
+
+        <!-- Tarjetas de los 5 Grupos -->
+        <div
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4"
+          id="groupsContainer"
+        >
+          <!-- Renderizado por JS -->
+        </div>
+
+        <!-- Panel de detalle rápido cuando se selecciona el caso de un grupo -->
+        <div id="selectedCasePreview" class="hidden">
+          <!-- Renderizado por JS -->
+        </div>
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- VISTA 2: CATÁLOGO COMPLETO DE LOS 5 CASOS                 -->
+      <!-- ========================================================= -->
+      <section id="viewCases" class="hidden space-y-6">
+        <div
+          class="flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+        >
+          <div>
+            <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900">
+              Los 5 Casos de Negocios Locales
+            </h2>
+            <p class="text-sm text-slate-600">
+              Cada caso incluye el mensaje informal del dueño y 5 peticiones
+              ambiguas sin roles predefinidos.
+            </p>
+          </div>
+        </div>
+
+        <div class="space-y-6" id="allCasesContainer">
+          <!-- Renderizado por JS -->
+        </div>
+      </section>
+
+      <!-- ========================================================= -->
+      <!-- VISTA 3: BITÁCORA / MATRIZ DE EVALUACIÓN TGS              -->
+      <!-- ========================================================= -->
+      <section id="viewMatrix" class="hidden space-y-8">
+        <!-- Ejemplo Ficticio Resuelto -->
+        <div class="card-clean rounded-2xl p-6 sm:p-8">
+          <div
+            class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4 mb-6"
+          >
+            <div>
+              <span
+                class="px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold uppercase"
+              >
+                Guía de Referencia para el Aprendiz
+              </span>
+              <h2
+                class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-1"
+              >
+                Ejemplo de Bitácora TGS (Escenario Ficticio Resuelto)
+              </h2>
+              <p class="text-sm text-slate-600">
+                Así es como el grupo debe registrar qué pensaba hacer
+                inicialmente, qué diseñó y qué corrigió tras escuchar la
+                retroalimentación del cliente.
+              </p>
+            </div>
+            <button
+              onclick="window.print()"
+              class="no-print px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold flex items-center gap-2 self-start"
+            >
+              <i class="fa-solid fa-print"></i> Imprimir / Guardar PDF
+            </button>
+          </div>
+
+          <!-- Tabla del Escenario Ficticio -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs sm:text-sm">
+              <thead>
+                <tr
+                  class="bg-slate-100 text-slate-800 border-b border-slate-300"
+                >
+                  <th class="p-3 font-bold">Petición del Cliente</th>
+                  <th class="p-3 font-bold">
+                    1. Lo que se pensaba hacer (Supuesto inicial)
+                  </th>
+                  <th class="p-3 font-bold">
+                    2. Lo que se hizo (Propuesta inicial)
+                  </th>
+                  <th class="p-3 font-bold">
+                    3. Lo que se corrigió (Ajuste por Retroalimentación)
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200 text-slate-700">
+                <tr>
+                  <td class="p-3 font-semibold text-slate-900">
+                    Petición 1 (Captura de pedidos en mostrador)
+                  </td>
+                  <td class="p-3">
+                    Poner un buscador de texto normal para digitar el nombre de
+                    cada producto vendido.
+                  </td>
+                  <td class="p-3">
+                    Se dibujó un formulario con teclado y lista desplegable de
+                    precios.
+                  </td>
+                  <td class="p-3 bg-emerald-50/60 font-medium text-slate-900">
+                    Como las vendedoras tienen las manos con harina, se cambió a
+                    botones gigantes táctiles con foto de 1 solo toque.
+                  </td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-semibold text-slate-900">
+                    Petición 2 (Control de bodega e insumos)
+                  </td>
+                  <td class="p-3">
+                    Descontar gramos de harina cada vez que se vende un pan en
+                    la caja.
+                  </td>
+                  <td class="p-3">
+                    Se restaban 50g de harina por cada unidad pagada por el
+                    cliente.
+                  </td>
+                  <td class="p-3 bg-emerald-50/60 font-medium text-slate-900">
+                    El pan se hornea por latas completas en la madrugada y hay
+                    merma; se corrigió para descontar insumos por tanda
+                    horneada.
+                  </td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-semibold text-slate-900">
+                    Petición 3 (Cálculo de pedidos especiales)
+                  </td>
+                  <td class="p-3">
+                    Poner 3 precios fijos: torta pequeña, mediana y grande.
+                  </td>
+                  <td class="p-3">
+                    Catálogo cerrado con pago obligatorio del 100% al pedir.
+                  </td>
+                  <td class="p-3 bg-emerald-50/60 font-medium text-slate-900">
+                    Se creó un cotizador por pisos/rellenos que permite
+                    registrar el 50% de anticipo y el 50% contraentrega.
+                  </td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-semibold text-slate-900">
+                    Petición 4 (Cierre de caja y pagos digitales)
+                  </td>
+                  <td class="p-3">
+                    Sumar todas las ventas del día en un solo total y subirlo a
+                    internet.
+                  </td>
+                  <td class="p-3">
+                    Reporte único de ingresos que exigía conexión permanente a
+                    internet.
+                  </td>
+                  <td class="p-3 bg-emerald-50/60 font-medium text-slate-900">
+                    Se separó el bolsillo de Efectivo del de Nequi/QR
+                    descontando pagos a proveedores, con guardado local si cae
+                    el Wi-Fi.
+                  </td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-semibold text-slate-900">
+                    Petición 5 (Acceso rápido y seguridad)
+                  </td>
+                  <td class="p-3">
+                    Dejar una sola clave compartida para que todas entren
+                    rápido.
+                  </td>
+                  <td class="p-3">
+                    Un único usuario general sin registro de quién hace cada
+                    venta.
+                  </td>
+                  <td class="p-3 bg-emerald-50/60 font-medium text-slate-900">
+                    Se puso un PIN rápido de 4 dígitos por empleado y
+                    autorización del dueño para poder anular recibos.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Plantilla Interactiva para que el Grupo Diligencie e Imprima -->
+        <div class="card-clean rounded-2xl p-6 sm:p-8">
+          <h3 class="text-lg sm:text-xl font-extrabold text-slate-900 mb-1">
+            Plantilla Editable para Entregar (Bitácora del Grupo)
+          </h3>
+          <p class="text-xs sm:text-sm text-slate-600 mb-5">
+            Completen los campos con la experiencia de su grupo y presionen
+            <strong>Imprimir / Guardar PDF</strong>.
+          </p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+            <div>
+              <label
+                class="block text-xs font-bold uppercase text-slate-600 mb-1"
+                >Número de Grupo e Integrantes:</label
+              >
+              <input
+                type="text"
+                placeholder="Ej: Grupo 3 - Ana, Carlos, Luisa, Mateo, Sofía"
+                class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:border-blue-600 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label
+                class="block text-xs font-bold uppercase text-slate-600 mb-1"
+                >Negocio Local Sorteado:</label
+              >
+              <input
+                type="text"
+                placeholder="Ej: Caso 2 - Taller de Motos Ruedas y Torque"
+                class="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:border-blue-600 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs sm:text-sm">
+              <thead>
+                <tr class="bg-blue-50 text-blue-900 border-b border-blue-200">
+                  <th class="p-3 font-bold w-32">Petición</th>
+                  <th class="p-3 font-bold">1. Lo que se pensaba hacer</th>
+                  <th class="p-3 font-bold">
+                    2. Lo que se hizo (Entrada y Proceso)
+                  </th>
+                  <th class="p-3 font-bold">
+                    3. Lo que se corrigió (Retroalimentación y Homeostasis)
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200">
+                <tr>
+                  <td class="p-2 font-bold text-slate-800">Petición #1</td>
+                  <td class="p-2">
+                    <textarea
+                      rows="2"
+                      class="w-full border border-slate-200 rounded-lg p-2 text-xs focus:border-blue-500 focus:outline-none"
+                      placeholder="Idea inicial..."
+                    ></textarea>
+                  </td>
+                  <td class="p-2">
+                    <textarea
+                      rows="2"
+                      class="w-full border border-slate-200 rounded-lg p-2 text-xs focus:border-blue-500 focus:outline-none"
+                      placeholder="Lo que diseñaron..."
+                    ></textarea>
+                  </td>
+                  <td class="p-2">
+                    <textarea
+                      rows="2"
+                      class="w-full border border-slate-200 rounded-lg p-2 text-xs focus:border-blue-500 focus:outline-none"
+                      placeholder="Ajuste realizado..."
+                    ></textarea>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="p-2 font-bold text-slate-800">Petición #2</td>
+                  <td class="p-2">
+                    <textarea
+                      rows="2"
+                      class="w-full border border-slate-200 rounded-lg p-2 text-xs focus:border-blue-500 focus:outline-none"
+                      placeholder="Idea inicial..."
+                    ></textarea>
+                  </td>
+                  <td class="p-2">
+                    <textarea
+                      rows="2"
+                      class="w-full border border-slate-200 rounded-lg p-2 text-xs focus:border-blue-500 focus:outline-none"
+                      placeholder="Lo que diseñaron..."
+                    ></textarea>
+                  </td>
+                  <td class="p-2">
+                    <textarea
+                      rows="2"
+                      class="w-full border border-slate-200 rounded-lg p-2 text-xs focus:border-blue-500 focus:outline-none"
+                      placeholder="Ajuste realizado..."
+                    ></textarea>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="p-2 font-bold text-slate-800">Petición #3</td>
+                  <td class="p-2">
+                    <textarea
+                      rows="2"
+                      class="w-full border border-slate-200 rounded-lg p-2 text-xs focus:border-blue-500 focus:outline-none"
+                      placeholder="Idea inicial..."
+                    ></textarea>
+                  </td>
+                  <td class="p-2">
+                    <textarea
+                      rows="2"
+                      class="w-full border border-slate-200 rounded-lg p-2 text-xs focus:border-blue-500 focus:outline-none"
+                      placeholder="Lo que diseñaron..."
+                    ></textarea>
+                  </td>
+                  <td class="p-2">
+                    <textarea
+                      rows="2"
+                      class="w-full border border-slate-200 rounded-lg p-2 text-xs focus:border-blue-500 focus:outline-none"
+                      placeholder="Ajuste realizado..."
+                    ></textarea>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="p-2 font-bold text-slate-800">Petición #4</td>
+                  <td class="p-2">
+                    <textarea
+                      rows="2"
+                      class="w-full border border-slate-200 rounded-lg p-2 text-xs focus:border-blue-500 focus:outline-none"
+                      placeholder="Idea inicial..."
+                    ></textarea>
+                  </td>
+                  <td class="p-2">
+                    <textarea
+                      rows="2"
+                      class="w-full border border-slate-200 rounded-lg p-2 text-xs focus:border-blue-500 focus:outline-none"
+                      placeholder="Lo que diseñaron..."
+                    ></textarea>
+                  </td>
+                  <td class="p-2">
+                    <textarea
+                      rows="2"
+                      class="w-full border border-slate-200 rounded-lg p-2 text-xs focus:border-blue-500 focus:outline-none"
+                      placeholder="Ajuste realizado..."
+                    ></textarea>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="p-2 font-bold text-slate-800">Petición #5</td>
+                  <td class="p-2">
+                    <textarea
+                      rows="2"
+                      class="w-full border border-slate-200 rounded-lg p-2 text-xs focus:border-blue-500 focus:outline-none"
+                      placeholder="Idea inicial..."
+                    ></textarea>
+                  </td>
+                  <td class="p-2">
+                    <textarea
+                      rows="2"
+                      class="w-full border border-slate-200 rounded-lg p-2 text-xs focus:border-blue-500 focus:outline-none"
+                      placeholder="Lo que diseñaron..."
+                    ></textarea>
+                  </td>
+                  <td class="p-2">
+                    <textarea
+                      rows="2"
+                      class="w-full border border-slate-200 rounded-lg p-2 text-xs focus:border-blue-500 focus:outline-none"
+                      placeholder="Ajuste realizado..."
+                    ></textarea>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- DATOS Y LÓGICA JAVASCRIPT -->
+    <script>
+      // Los 5 Casos de Desarrollo de Software para Negocios Locales (Sin nombres de roles)
+      const SOFTWARE_CASES = [
+        {
+          id: 1,
+          title: 'Panadería y Pastelería "El Triunfo"',
+          owner: "Don Ramiro (Propietario)",
+          icon: "fa-bread-slice",
+          badgeColor: "bg-amber-100 text-amber-800 border-amber-200",
+          contextQuote:
+            "«Muchachos, necesito una aplicación sencilla porque en las mañanas esto es un despelote con los pedidos de pan caliente y las tortas por encargo.»",
+          requests: [
+            "Quiero una pantallita rápida con botones grandes donde las vendedoras anoten lo que llevan los clientes sin escribir tanto, que se vea bonito como en el celular.",
+            "Que el sistema me avise cuando se esté acabando la harina y el azúcar en la bodega según lo que vamos horneando en el día.",
+            "Si alguien encarga una torta personalizada, que el programa calcule solo cuánto cobrarle dependiendo de lo que le echemos y los pisos que tenga.",
+            "Necesito que al final de la tarde me saque la cuenta limpia de cuánto entró en efectivo y por Nequi, descontando lo de los proveedores, sin pagar servidores caros.",
+            "Que cualquiera del turno pueda entrar rápido sin tanta clave engorrosa, pero que no me puedan borrar ventas ni cambiar los precios.",
+          ],
+          hiddenReality:
+            "Las vendedoras tienen las manos llenas de harina en hora pico (no pueden digitar texto), los insumos no se descuentan por pan vendido sino por lata/tanda horneada en la madrugada, las tortas por encargo se manejan con 50% de abono inicial y 50% al entregar, el Wi-Fi del mostrador se cae cuando llueve y sin un PIN individual por empleada es imposible saber quién anuló un pedido.",
+        },
+        {
+          id: 2,
+          title: 'Taller de Motos "Ruedas y Torque"',
+          owner: "Jefe Julián (Administrador y Mecánico Líder)",
+          icon: "fa-motorcycle",
+          badgeColor: "bg-blue-100 text-blue-800 border-blue-200",
+          contextQuote:
+            "«Necesito organizar el taller porque los mecánicos cogen repuestos del estante, no avisan y al final no sé ni qué moto está lista ni cuánto cobrar.»",
+          requests: [
+            "Hagan una vista donde el cliente meta la placa de su moto desde la casa y vea en qué va el arreglo sin estar llamando todo el día.",
+            "Quiero tener guardados todos los repuestos, aceites y tornillos para que apenas los usen en una moto se descuenten solos del inventario.",
+            "Que cuando entre una moto el sistema arme la orden de trabajo y le sume la mano de obra según qué tan duro estuvo el arreglo.",
+            "Que me tire el recibo listo para imprimir en tirilla con garantía y todo, y que el programa me corra en el computador viejito de la caja sin mensualidades.",
+            "Que los mecánicos puedan meterle mano al sistema desde el patio para subir fotos del daño, pero que los datos de los clientes y mis ganancias queden bien protegidos.",
+          ],
+          hiddenReality:
+            "El aceite se compra por tambor de 55 galones pero se vende por mililitros (cuartos), hasta 3 mecánicos distintos meten mano en una misma moto, si el cliente rechaza el presupuesto inicial hay que cobrar solo el peritaje, los repuestos eléctricos no tienen garantía y los mecánicos no deben ver el precio de costo de los repuestos.",
+        },
+        {
+          id: 3,
+          title: 'Minimercado y Fruver "La Canasta"',
+          owner: "Doña Marta (Fundadora)",
+          icon: "fa-apple-whole",
+          badgeColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
+          contextQuote:
+            "«Quiero sistematizar el fruver porque en quincena la fila da la vuelta a la cuadra, la verdura se me madura y los domicilios por WhatsApp son un caos.»",
+          requests: [
+            "Necesito una página o catálogo donde los vecinos pidan el mercado desde el celular viendo las fotos reales de lo que hay fresco hoy.",
+            "Que toda la fruta, verdura y abarrotes estén registrados para saber exactamente cuántos kilos me quedan en las canastillas en todo momento.",
+            "Como la fruta varía de peso al empacarla, que el sistema ajuste el pedido automático y arme las rutas de los domiciliarios según el barrio.",
+            "Que el cajero pueda cobrar rapidísimo leyendo códigos o pesando, cuadrando la caja con datáfono, bonos y los fiados de los vecinos de confianza.",
+            "Que el sistema nunca se trabe en plena quincena y que valide que el domiciliario sí entregó el mercado completo antes de cerrar el pedido.",
+          ],
+          hiddenReality:
+            'Las frutas y verduras pierden peso solas por deshidratación o maduración (merma diaria del 8%), cuando un cliente pide "1 kilo de papaya" por celular nunca pesa exactamente 1.000g en la báscula (cambia el valor antes de despachar), el cuaderno de fiados requiere cupo límite por vecino y los domiciliarios necesitan un código de confirmación de entrega.',
+        },
+        {
+          id: 4,
+          title: 'Veterinaria y Spa Canino "Huellitas"',
+          owner: "Dra. Valentina (Médica Veterinaria)",
+          icon: "fa-paw",
+          badgeColor: "bg-purple-100 text-purple-800 border-purple-200",
+          contextQuote:
+            "«Se nos están cruzando las citas de baño con las cirugías y los dueños se enojan porque pierden el carnet físico de vacunas de sus mascotas.»",
+          requests: [
+            "Quiero una agenda visual bien clara donde los dueños aparten el turno de baño o consulta desde el celular y reciban recordatorios.",
+            "Que cada perrito o gato tenga su carpeta guardada con sus vacunas, medicamentos aplicados y el concentrado que le compran.",
+            "El sistema debe calcular cuánto dura cada cita de peluquería y asignar al bañador disponible sin que se nos llenen las jaulas del local.",
+            "Que al salir la mascota me arme la factura juntando la consulta, las vacunas y los juguetes, aplicando descuento si el dueño trae varias mascotas.",
+            "Por norma las historias clínicas no se pueden alterar después de cerradas, pero necesito que sea facilísimo de usar para los practicantes nuevos.",
+          ],
+          hiddenReality:
+            "Un perro de raza grande con nudos tarda 3 veces más que un perro pequeño (no todas las citas duran 1 hora), el local solo tiene 6 caniles/jaulas físicas (si se agendan 7 perros a la vez colapsa el espacio), los medicamentos se descargan por mililitros según el peso en kilos del animal y la historia clínica debe bloquearse tras 24 horas.",
+        },
+        {
+          id: 5,
+          title: 'Asadero y Restaurante "Brasa Boyacense"',
+          owner: "Don Hernando (Propietario)",
+          icon: "fa-utensils",
+          badgeColor: "bg-rose-100 text-rose-800 border-rose-200",
+          contextQuote:
+            "«Los domingos al mediodía los meseros gritan los pedidos a la cocina, se confunden las mesas y la comida sale fría o incompleta.»",
+          requests: [
+            "Necesito que los meseros tomen el pedido en una tablet tocando los platos del menú con sus acompañamientos en un segundo.",
+            "Que en la cocina y en la parrilla salga en una pantalla qué tienen que preparar en orden y se descuenten las porciones de carne, pollo y papa del día.",
+            "Si una mesa pide cambiar sopa por fruta o combinar mitades de pollo con diferentes adiciones, que el sistema coordine para que todo salga al tiempo.",
+            "Que a la hora de pagar puedan dividir la cuenta entre varios amigos fácilmente, sumando propina voluntaria y calculando la ganancia del día.",
+            "Que funcione perfecto aunque se caiga el internet del restaurante y que ningún mesero pueda borrar un plato que ya salió de la cocina.",
+          ],
+          hiddenReality:
+            "En el inventario 1 pollo asado entero equivale a 2 medios pollos o 4 cuartos (deben descontar de la misma bolsa de pollos), en mesas grandes de 10 familiares unos pagan su plato por transferencia y otros en efectivo, la señal Wi-Fi no llega al fondo junto al horno de ladrillo y cualquier plato cancelado después de marchar a cocina requiere clave del cajero.",
+        },
+      ];
+
+      // Estado de asignación para los 5 grupos (índice de caso asignado o null)
+      let groupAssignments = [null, null, null, null, null];
+      let isRaffling = false;
+
+      window.onload = function () {
+        renderGroupsGrid();
+        renderAllCasesView();
+      };
+
+      // Cambiar entre las 3 vistas superiores
+      function switchTab(tab) {
+        const vDraw = document.getElementById("viewDraw");
+        const vCases = document.getElementById("viewCases");
+        const vMatrix = document.getElementById("viewMatrix");
+
+        const bDraw = document.getElementById("tabBtnDraw");
+        const bCases = document.getElementById("tabBtnCases");
+        const bMatrix = document.getElementById("tabBtnMatrix");
+
+        vDraw.classList.add("hidden");
+        vCases.classList.add("hidden");
+        vMatrix.classList.add("hidden");
+
+        const inactiveClass =
+          "px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition text-slate-600 hover:text-slate-900";
+        const activeClass =
+          "px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition bg-white text-blue-600 shadow-sm";
+
+        bDraw.className = inactiveClass;
+        bCases.className = inactiveClass;
+        bMatrix.className = inactiveClass;
+
+        if (tab === "DRAW") {
+          vDraw.classList.remove("hidden");
+          bDraw.className = activeClass;
+        } else if (tab === "CASES") {
+          vCases.classList.remove("hidden");
+          bCases.className = activeClass;
+        } else if (tab === "MATRIX") {
+          vMatrix.classList.remove("hidden");
+          bMatrix.className = activeClass;
+        }
+      }
+
+      // Renderizar las 5 tarjetas de los 5 Grupos
+      function renderGroupsGrid(shufflingEffect = false) {
+        const container = document.getElementById("groupsContainer");
+        container.innerHTML = [0, 1, 2, 3, 4]
+          .map((groupIdx) => {
+            const assignedCase = groupAssignments[groupIdx];
+            if (!assignedCase) {
+              return `
+                        <div class="card-clean rounded-2xl p-5 flex flex-col items-center justify-center text-center min-h-[190px] ${shufflingEffect ? "shuffling" : ""}">
+                            <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center text-lg font-bold mb-3">
+                                G${groupIdx + 1}
+                            </div>
+                            <h3 class="font-bold text-slate-800 text-base">Grupo ${groupIdx + 1}</h3>
+                            <p class="text-xs text-slate-400 mt-1">Sin caso sorteado</p>
+                        </div>
+                    `;
+            }
+
+            return `
+                    <div onclick="showCaseDetail(${assignedCase.id}, ${groupIdx + 1})" class="card-clean rounded-2xl p-5 flex flex-col justify-between cursor-pointer border-2 hover:border-blue-500 min-h-[190px] ${shufflingEffect ? "shuffling" : ""}">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-xs font-extrabold uppercase px-2.5 py-1 rounded-md bg-slate-900 text-white">
+                                    Grupo ${groupIdx + 1}
+                                </span>
+                                <span class="text-xs font-bold px-2.5 py-1 rounded-md border ${assignedCase.badgeColor}">
+                                    Caso #${assignedCase.id}
+                                </span>
+                            </div>
+                            <div class="flex items-center gap-2.5 mt-2">
+                                <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                                    <i class="fa-solid ${assignedCase.icon}"></i>
+                                </div>
+                                <h3 class="font-bold text-slate-900 text-sm leading-snug">
+                                    ${assignedCase.title}
+                                </h3>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-blue-600">
+                            <span>Abrir las 5 peticiones</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </div>
+                    </div>
+                `;
+          })
+          .join("");
+      }
+
+      // Ejecutar el sorteo aleatorio sin repetir casos entre los 5 grupos
+      function runGroupRaffle() {
+        if (isRaffling) return;
+        isRaffling = true;
+
+        const btn = document.getElementById("btnRunRaffle");
+        btn.disabled = true;
+        btn.innerHTML =
+          '<i class="fa-solid fa-spinner fa-spin"></i> Sorteando casos...';
+
+        let ticks = 0;
+        const interval = setInterval(() => {
+          // Permutación aleatoria rápida para efecto visual
+          const shuffled = [...SOFTWARE_CASES].sort(() => Math.random() - 0.5);
+          groupAssignments = shuffled;
+          renderGroupsGrid(true);
+          ticks++;
+
+          if (ticks >= 8) {
+            clearInterval(interval);
+            // Permutación final Fisher-Yates
+            const finalCopy = [...SOFTWARE_CASES];
+            for (let i = finalCopy.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [finalCopy[i], finalCopy[j]] = [finalCopy[j], finalCopy[i]];
+            }
+            groupAssignments = finalCopy;
+            renderGroupsGrid(false);
+            isRaffling = false;
+            btn.disabled = false;
+            btn.innerHTML =
+              '<i class="fa-solid fa-shuffle"></i> Volver a Sortear los 5 Grupos';
+
+            // Mostrar el detalle del Grupo 1 por defecto tras el sorteo
+            showCaseDetail(groupAssignments[0].id, 1);
+          }
+        }, 110);
+      }
+
+      function resetRaffle() {
+        groupAssignments = [null, null, null, null, null];
+        renderGroupsGrid(false);
+        document.getElementById("selectedCasePreview").classList.add("hidden");
+      }
+
+      // Mostrar el caso seleccionado en tamaño grande para proyectar en el salón
+      function showCaseDetail(caseId, groupNumber) {
+        const c = SOFTWARE_CASES.find((item) => item.id === caseId);
+        if (!c) return;
+
+        const preview = document.getElementById("selectedCasePreview");
+        preview.classList.remove("hidden");
+        preview.innerHTML = buildCaseCardHTML(c, groupNumber, "preview");
+        preview.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      // Renderizar la pestaña de todos los 5 casos
+      function renderAllCasesView() {
+        const container = document.getElementById("allCasesContainer");
+        container.innerHTML = SOFTWARE_CASES.map((c) =>
+          buildCaseCardHTML(c, null, "catalog"),
+        ).join("");
+      }
+
+      // Generador HTML limpio para cada Caso con sus 5 peticiones ambiguas
+      function buildCaseCardHTML(c, groupNumber, contextPrefix) {
+        const uniqueFeedbackId = `feedback_${contextPrefix}_${c.id}`;
+        const groupBadge = groupNumber
+          ? `<span class="px-3 py-1 rounded-lg bg-slate-900 text-white text-xs font-extrabold uppercase">Asignado al Grupo ${groupNumber}</span>`
+          : "";
+
+        return `
+                <div class="card-clean rounded-2xl p-6 sm:p-8">
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4 mb-5">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-2xl border border-blue-100">
+                                <i class="fa-solid ${c.icon}"></i>
+                            </div>
+                            <div>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    ${groupBadge}
+                                    <span class="px-2.5 py-0.5 rounded-md text-xs font-bold border ${c.badgeColor}">
+                                        Caso #${c.id}
+                                    </span>
+                                    <span class="text-xs font-semibold text-slate-500">${c.owner}</span>
+                                </div>
+                                <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-1">
+                                    ${c.title}
+                                </h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mensaje General del Cliente -->
+                    <div class="bg-slate-50 border-l-4 border-l-blue-600 p-4 rounded-r-xl mb-6">
+                        <div class="text-xs font-bold uppercase text-blue-700 mb-1">
+                            <i class="fa-regular fa-comment-dots mr-1"></i> Solicitud General del Cliente (Entrada del Sistema):
+                        </div>
+                        <p class="text-sm sm:text-base text-slate-800 font-medium italic">
+                            ${c.contextQuote}
+                        </p>
+                    </div>
+
+                    <!-- Las 5 Peticiones Ambiguas (Sin nombrar roles) -->
+                    <div class="mb-6">
+                        <h4 class="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-slate-700 mb-3">
+                            Las 5 Peticiones del Cliente (Para analizar y repartir entre los 5 integrantes):
+                        </h4>
+                        <div class="grid grid-cols-1 gap-3">
+                            ${c.requests
+                              .map(
+                                (req, idx) => `
+                                <div class="flex items-start gap-3.5 p-3.5 rounded-xl bg-white border border-slate-200 hover:border-blue-300 transition">
+                                    <div class="w-7 h-7 rounded-lg bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                                        ${idx + 1}
+                                    </div>
+                                    <p class="text-sm sm:text-base text-slate-800 font-medium leading-relaxed">
+                                        "${req}"
+                                    </p>
+                                </div>
+                            `,
+                              )
+                              .join("")}
+                        </div>
+                    </div>
+
+                    <!-- Botón Desplegable para la Retroalimentación (Realidad Oculta del Local) -->
+                    <div class="border border-amber-200 bg-amber-50/60 rounded-xl overflow-hidden">
+                        <button onclick="toggleElement('${uniqueFeedbackId}')" class="w-full px-4 py-3 text-left flex items-center justify-between text-xs sm:text-sm font-bold text-amber-900 hover:bg-amber-100/60 transition cursor-pointer">
+                            <span>
+                                <i class="fa-solid fa-lightbulb text-amber-600 mr-1.5"></i>
+                                Ver Realidad Oculta del Negocio (Usar en la fase de Retroalimentación / Feedback)
+                            </span>
+                            <i class="fa-solid fa-chevron-down text-amber-700"></i>
+                        </button>
+                        <div id="${uniqueFeedbackId}" class="hidden px-4 pb-4 pt-2 text-xs sm:text-sm text-slate-800 border-t border-amber-200 bg-white leading-relaxed">
+                            <strong class="text-amber-800">Choque con la realidad operativa del local:</strong> ${c.hiddenReality}
+                        </div>
+                    </div>
+                </div>
+            `;
+      }
+
+      function toggleElement(id) {
+        const el = document.getElementById(id);
+        if (el) {
+          el.classList.toggle("hidden");
+        }
+      }
+    </script>
+  </body>
+</html>
